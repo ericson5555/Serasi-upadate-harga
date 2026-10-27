@@ -1,78 +1,123 @@
-
-<!doctype html>
+```html
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>Login — Serasi Mantap 2026</title>
   <style>
     * { box-sizing: border-box; }
+
     body {
-      margin: 0; min-height: 100vh;
-      display: grid; place-items: center; padding: 20px;
-      background: #eef4ff; color: #172033;
-      font: 16px/1.5 Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #eef4ff;
+      color: #172033;
     }
-    main {
-      width: min(100%, 400px); background: white;
-      padding: 28px; border-radius: 16px;
-      box-shadow: 0 12px 35px #0001;
+
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      padding: 30px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 35px #0002;
     }
+
     h1 { margin-top: 0; }
-    label { display: block; margin: 14px 0 6px; }
+
+    label {
+      display: block;
+      margin: 16px 0 6px;
+    }
+
     input {
-      width: 100%; padding: 12px;
-      border: 1px solid #cbd5e1; border-radius: 8px;
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
       font-size: 16px;
     }
+
     button {
-      width: 100%; padding: 12px; margin-top: 20px;
-      border: 0; border-radius: 8px;
-      background: #1d4ed8; color: white;
-      font-size: 16px; cursor: pointer;
+      width: 100%;
+      padding: 13px;
+      margin-top: 22px;
+      border: none;
+      border-radius: 8px;
+      background: #1d4ed8;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
     }
-    button:disabled { opacity: .6; }
-    #error { color: #b91c1c; overflow-wrap: anywhere; }
+
+    button:disabled { opacity: 0.6; }
+
+    #message {
+      color: #b91c1c;
+      overflow-wrap: anywhere;
+    }
   </style>
 </head>
 <body>
-  <main>
+  <main class="login-box">
     <h1>Serasi Mantap 2026</h1>
     <p>Silakan login untuk membuka dashboard.</p>
 
     <form id="loginForm">
       <label for="username">Username</label>
-      <input id="username" autocomplete="username"
-        required maxlength="80">
+      <input
+        id="username"
+        name="username"
+        autocomplete="username"
+        required
+        maxlength="80"
+      >
 
       <label for="password">Password</label>
-      <input id="password" type="password"
-        autocomplete="current-password" required>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        required
+      >
 
-      <button id="submitBtn" type="submit">Masuk ke Dashboard</button>
-      <p id="error" role="alert"></p>
+      <button id="submitBtn" type="submit">
+        Masuk ke Dashboard
+      </button>
+
+      <p id="message" role="alert"></p>
     </form>
   </main>
 
   <script>
     const form = document.getElementById('loginForm');
-    const btn = document.getElementById('submitBtn');
-    const error = document.getElementById('error');
+    const button = document.getElementById('submitBtn');
+    const message = document.getElementById('message');
 
-    form.addEventListener('submit', async event => {
+    form.addEventListener('submit', async function (event) {
       event.preventDefault();
-      error.textContent = '';
-      btn.disabled = true;
-      btn.textContent = 'Memeriksa...';
+
+      message.textContent = '';
+      button.disabled = true;
+      button.textContent = 'Memeriksa...';
 
       try {
         const response = await fetch('/api/login', {
           method: 'POST',
           credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({
-            username: document.getElementById('username').value,
+            username: document.getElementById('username').value.trim(),
             password: document.getElementById('password').value
           })
         });
@@ -83,15 +128,16 @@
           throw new Error(data.error || 'Login gagal.');
         }
 
-        window.location.replace('/');
-      } catch (err) {
-        error.textContent =
-          err.message || 'Tidak dapat terhubung ke server.';
+        window.location.replace(data.redirect || '/');
+      } catch (error) {
+        message.textContent =
+          error.message || 'Tidak dapat terhubung ke server.';
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'Masuk ke Dashboard';
+        button.disabled = false;
+        button.textContent = 'Masuk ke Dashboard';
       }
     });
   </script>
 </body>
 </html>
+```
