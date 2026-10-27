@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pembuat Hash Admin</title>
+</head>
+<body>
+  <h2>Buat Akun Admin Serasi</h2>
+
+  <label>Username</label><br>
+  <input id="username" value="ericson" autocomplete="username"><br><br>
+
+  <label>Password baru (minimal 12 karakter)</label><br>
+  <input id="password" type="password" minlength="12" autocomplete="new-password"><br><br>
+
+  <button id="buat">Buat SQL</button>
+  <p id="status"></p>
+  <textarea id="hasil" rows="6" cols="60" readonly></textarea><br>
+  <button id="salin" hidden>Salin SQL</button>
+
+  <script>
+    const bytesToBase64 = bytes => {
+      let binary = "";
+      for (const b of bytes) binary += String.fromCharCode(b);
+      return btoa(binary);
+    };
+
+    document.getElementById("buat").addEventListener("click", async () => {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const status = document.getElementById("status");
+      const hasil = document.getElementById("hasil");
+      const salin = document.getElementById("salin");
+
+      hasil.value = "";
+      salin.hidden = true;
+
+      if (!/^[a-zA-Z0-9._-]{3,80}$/.test(username)) {
+        status.textContent = "Username harus 3-80 karakter tanpa spasi.";
+        return;
+      }
+      if (password.length < 12) {
+        status.textContent = "Password harus minimal 12 karakter.";
+        return;
+      }
+
+      try {
+        status.textContent = "Sedang membuat hash...";
+        const iterations = 310000;
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const key = await crypto.subtle.importKey(
+          "raw", new TextEncoder().encode(password),
+          "PBKDF2", false, ["deriveBits"]
+        );
+        const derived = new Uint8Array(await crypto.subtle.deriveBits(
+          { name: "PBKDF2", hash: "SHA-256", salt, iterations },
+          key, 256
+        ));
+
+        const hash = `pbkdf2_sha256$${iterations}$${bytesToBase64(salt)}$${bytesToBase64(derived)}`;
+        const quote = s => "'" + s.replaceAll("'", "''") + "'";
+        const timestamp = Math.floor(Date.now() / 1000);
+
+        hasil.value = `INSERT INTO users (username, password_hash, role, active, created_at) VALUES (${quote(username)}, ${quote(hash)}, 'admin', 1, ${timestamp});`;
+        status.textContent = "SQL berhasil dibuat. Password tidak dikirim ke server oleh kode ini.";
+        salin.hidden = false;
+        document.getElementById("password").value = "";
+      } catch (e) {
+        status.textContent = "Gagal membuat hash. Buka halaman melalui HTTPS dan coba lagi.";
+      }
+    });
+
+    document.getElementById("salin").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(document.getElementById("hasil").value);
+      document.getElementById("status").textContent = "SQL disalin.";
+    });
+  </script>
+</body>
+</html>
