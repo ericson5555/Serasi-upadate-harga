@@ -10,5 +10,51 @@
 <form id="loginForm"><label for="username">Username</label><input id="username" name="username" autocomplete="username" required maxlength="80"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required><button id="submitBtn" type="submit">Masuk ke Dashboard</button><p id="error" class="error" role="alert" aria-live="polite"></p></form><p class="foot">Akses khusus pengguna yang diizinkan.</p></main>
 <script>
 const form=document.getElementById('loginForm'),btn=document.getElementById('submitBtn'),error=document.getElementById('error');
-form.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';btn.disabled=true;btn.textContent='Memeriksa...';try{const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({username:document.getElementById('username').value,password:document.getElementById('password').value})});const data=await r.json();if(!r.ok)throw new Error(data.error||'Login gagal.');location.replace('/');}catch(err){error.textContent=err.message||'Tidak dapat terhubung. Coba lagi.';}finally{btn.disabled=false;btn.textContent='Masuk ke Dashboard';}});
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+
+  error.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Memeriksa...';
+
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value
+      })
+    });
+
+    const contentType = r.headers.get('content-type') || '';
+
+    if (!contentType.includes('application/json')) {
+      const text = await r.text();
+      throw new Error(
+        `Server mengirim respons bukan JSON (HTTP ${r.status}). Periksa fungsi login.js dan routing Cloudflare.`
+      );
+    }
+
+    const data = await r.json();
+
+    if (!r.ok) {
+      throw new Error(data.error || `Login gagal (HTTP ${r.status}).`);
+    }
+
+    if (data.ok) {
+      window.location.replace('/');
+    } else {
+      throw new Error(data.error || 'Login gagal.');
+    }
+  } catch (err) {
+    error.textContent = err.message || 'Terjadi kesalahan saat login.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Masuk ke Dashboard';
+  }
+});
+
 </script></body></html>
