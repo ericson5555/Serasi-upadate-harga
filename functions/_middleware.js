@@ -20,7 +20,12 @@ export async function onRequest({ request, env, next }) {
   const path = url.pathname;
 
   // Public routes required to log in or sign out.
-  if (path === '/login.html' || path === '/api/login' || path === '/api/logout') {
+if (
+  path === '/login.html' ||
+  path === '/login' ||
+  path === '/api/login' ||
+  path === '/api/logout'
+) {
     if (path === '/login.html' && getCookie(request, COOKIE_NAME)) {
       const token = getCookie(request, COOKIE_NAME);
       const tokenHash = await sha256Hex(token);
